@@ -187,7 +187,13 @@ const typeIcons = {
 };
 
 export default function CompliancePage() {
-   const { t } = useTranslation(); // <- moved here directly, no condition
+    const { t } = useTranslation();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // avoid rendering on server
+  if (!mounted) return null;
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
