@@ -187,7 +187,9 @@ const typeIcons = {
 };
 
 export default function CompliancePage() {
-  const { t } = useTranslation();
+  const isClient = typeof window !== 'undefined';
+  const { t } = isClient ? useTranslation() : { t: (key: string) => key };
+
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
