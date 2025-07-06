@@ -37,6 +37,7 @@ import {
   Download,
   Upload,
   Settings,
+  X,
   Bell,
   Activity
 } from 'lucide-react';
