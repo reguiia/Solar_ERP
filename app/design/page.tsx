@@ -41,7 +41,6 @@ export default function DesignPage() {
   const [roofArea, setRoofArea] = useState([100]);
   const [energyConsumption, setEnergyConsumption] = useState([300]);
   const [tiltAngle, setTiltAngle] = useState([30]);
-  const [simulationResults, setSimulationResults] = useState(null);
   const [simulationResults, setSimulationResults] = useState<SimulationResult | null>(null);
 
   const runSimulation = () => {
