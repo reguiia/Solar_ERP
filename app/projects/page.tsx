@@ -13,6 +13,7 @@ import {
   MapPin,
   Clock,
   CheckCircle,
+  FolderOpen,
   AlertCircle,
   MoreHorizontal,
   Eye,
