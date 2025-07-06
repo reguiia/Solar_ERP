@@ -39,6 +39,7 @@ import {
   Settings,
   Users,
   Target,
+  BarChart3,
   TrendingUp,
   AlertTriangle,
   Star
