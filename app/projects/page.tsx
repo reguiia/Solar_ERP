@@ -8,6 +8,7 @@ import {
   Plus, 
   Search, 
   Filter, 
+  X,
   Calendar,
   User,
   MapPin,
