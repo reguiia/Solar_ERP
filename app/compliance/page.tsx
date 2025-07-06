@@ -189,7 +189,7 @@ const typeIcons = {
 export default function CompliancePage() {
   const isClient = typeof window !== 'undefined';
 
-  const [tFunc, setTFunc] = useState<(key: string) => string>(() => (key) => key);
+  const [tFunc, setTFunc] = useState<(key: string) => string>(() => (key: string) => key);
 
   useEffect(() => {
     if (isClient) {
