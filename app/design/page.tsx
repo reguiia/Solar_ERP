@@ -14,6 +14,7 @@ import {
   Factory,
   X,
   Sprout,
+  FolderOpen,
   FileText,
   Settings,
   BarChart3
