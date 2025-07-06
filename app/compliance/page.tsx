@@ -188,7 +188,15 @@ const typeIcons = {
 
 export default function CompliancePage() {
   const isClient = typeof window !== 'undefined';
-  const { t } = isClient ? useTranslation() : { t: (key: string) => key };
+
+  const [tFunc, setTFunc] = useState<(key: string) => string>(() => (key) => key);
+
+  useEffect(() => {
+    if (isClient) {
+      const { t } = useTranslation();
+      setTFunc(() => t);
+    }
+  }, [isClient]);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
