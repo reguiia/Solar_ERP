@@ -28,7 +28,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { supabase } from '@/lib/supabase';
+
+// Remove the supabase import that might be causing issues
+// import { supabase } from '@/lib/supabase';
 
 interface Regulation {
   id: string;
@@ -169,7 +171,7 @@ const mockComplianceRecords: ComplianceRecord[] = [
   }
 ];
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   in_review: 'bg-blue-100 text-blue-800',
   approved: 'bg-green-100 text-green-800',
@@ -180,21 +182,15 @@ const statusColors = {
   archived: 'bg-red-100 text-red-800'
 };
 
-const typeIcons = {
+const typeIcons: Record<string, React.ReactNode> = {
   residential: <Home className="h-4 w-4" />,
   industrial: <Building className="h-4 w-4" />,
   agricultural: <Sprout className="h-4 w-4" />
 };
 
-export default function CompliancePage() {
-    const { t } = useTranslation();
-
+function CompliancePage() {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  // avoid rendering on server
-  if (!mounted) return null;
-
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -202,6 +198,23 @@ export default function CompliancePage() {
   const [regulations, setRegulations] = useState<Regulation[]>(mockRegulations);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredRecords = complianceRecords.filter(record => {
     const matchesSearch = record.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -229,7 +242,9 @@ export default function CompliancePage() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
-              <h1 className="text-xl font-semibold text-gray-900">{t('nav.compliance')} - Regulatory Compliance</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {t ? t('nav.compliance') : 'Compliance'} - Regulatory Compliance
+              </h1>
             </div>
             <div className="flex space-x-2">
               <Button variant="outline">
@@ -596,3 +611,5 @@ export default function CompliancePage() {
     </div>
   );
 }
+
+export default CompliancePage;
