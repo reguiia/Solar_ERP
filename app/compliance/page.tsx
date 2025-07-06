@@ -187,16 +187,7 @@ const typeIcons = {
 };
 
 export default function CompliancePage() {
-  const isClient = typeof window !== 'undefined';
-
-  const [tFunc, setTFunc] = useState<(key: string) => string>(() => (key: string) => key);
-
-  useEffect(() => {
-    if (isClient) {
-      const { t } = useTranslation();
-      setTFunc(() => t);
-    }
-  }, [isClient]);
+   const { t } = useTranslation(); // <- moved here directly, no condition
 
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
@@ -204,6 +195,7 @@ export default function CompliancePage() {
   const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>(mockComplianceRecords);
   const [regulations, setRegulations] = useState<Regulation[]>(mockRegulations);
   const [loading, setLoading] = useState(false);
+
 
   const filteredRecords = complianceRecords.filter(record => {
     const matchesSearch = record.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
