@@ -26,13 +26,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 
+interface SimulationResult {
+  panelsNeeded: number;
+  systemCapacity: number;
+  dailyProduction: number;
+  monthlyProduction: number;
+  annualProduction: number;
+  systemCost: number;
+  paybackPeriod: number;
+}
+
 export default function DesignPage() {
   const [systemType, setSystemType] = useState('residential');
   const [roofArea, setRoofArea] = useState([100]);
   const [energyConsumption, setEnergyConsumption] = useState([300]);
   const [tiltAngle, setTiltAngle] = useState([30]);
   const [simulationResults, setSimulationResults] = useState(null);
-   const [simulationResults, setSimulationResults] = useState<SimulationResult | null>(null);
+  const [simulationResults, setSimulationResults] = useState<SimulationResult | null>(null);
 
   const runSimulation = () => {
     // Mock simulation calculation
