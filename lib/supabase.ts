@@ -650,10 +650,7 @@ export type Database = {
 export const fetchLeads = async () => {
   const { data, error } = await supabase
     .from('leads')
-    .select(`
-      *,
-      assigned_user:users(full_name)
-    `)
+    .select(`*, assigned_user:users(full_name)`)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
@@ -663,11 +660,7 @@ export const fetchLeads = async () => {
 export const fetchProjects = async () => {
   const { data, error } = await supabase
     .from('projects')
-    .select(`
-      *,
-      customer:customers(name, email, phone),
-      manager:users!projects_project_manager_fkey(full_name)
-    `)
+    .select(`*, customer:customers(name, email, phone), manager:users!projects_project_manager_fkey(full_name)`)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
@@ -697,10 +690,7 @@ export const fetchSuppliers = async () => {
 export const fetchProducts = async () => {
   const { data, error } = await supabase
     .from('products')
-    .select(`
-      *,
-      supplier:suppliers(name)
-    `)
+    .select(`*, supplier:suppliers(name)`)
     .order('name');
   
   if (error) throw error;
@@ -710,15 +700,7 @@ export const fetchProducts = async () => {
 export const fetchPurchaseOrders = async () => {
   const { data, error } = await supabase
     .from('purchase_orders')
-    .select(`
-      *,
-      supplier:suppliers(name),
-      project:projects(name),
-      items:purchase_order_items(
-        *,
-        product:products(name)
-      )
-    `)
+    .select(`*, supplier:suppliers(name), project:projects(name), items:purchase_order_items(*), product:products(name))`)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
