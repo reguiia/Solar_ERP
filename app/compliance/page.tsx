@@ -249,7 +249,7 @@ useEffect(() => {
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
                   <p className="text-xs text-muted-foreground">
-                    {Math.round((stats.approved / stats.totalSubmissions) * 100)}% approval rate
+                    {stats.totalSubmissions > 0 ? Math.round((stats.approved / stats.totalSubmissions) * 100) : 0}% approval rate
                   </p>
                 </CardContent>
               </Card>
