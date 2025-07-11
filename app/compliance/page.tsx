@@ -29,9 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 
-// Remove the supabase import that might be causing issues
-// import { supabase } from '@/lib/supabase';
-
 interface Regulation {
   id: string;
   name: string;
