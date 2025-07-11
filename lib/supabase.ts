@@ -724,11 +724,13 @@ export const fetchInvoices = async () => {
 export const fetchComplianceRecords = async () => {
   const { data, error } = await supabase
     .from('compliance_records')
-    .select(`*, project:projects(name), assigned_user:users!compliance_records_assigned_to_fkey(full_name)`)
+    .select('id, regulation_name, status, progress, submission_date, approval_date, project_id, notes, assigned_to, created_at')
     .order('created_at', { ascending: false });
-  
+
   if (error) throw error;
-  return data;
+
+  // If you need related data, fetch separately
+  return data || [];
 };
 
 export const fetchDashboardStats = async () => {
