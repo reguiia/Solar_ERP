@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { 
@@ -28,36 +28,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { supabase, fetchComplianceRecords } from '@/lib/supabase';
 
-interface Regulation {
+// Types based on database schema
+type ComplianceRecord = {
   id: string;
-  name: string;
-  description: string;
-  type: 'residential' | 'industrial' | 'agricultural';
-  authority: string;
-  requirements: string[];
-  documents: string[];
-  timeline: string;
-  status: 'active' | 'draft' | 'archived';
-}
-
-interface ComplianceRecord {
-  id: string;
-  projectId: string;
-  projectName: string;
-  regulationId: string;
-  regulationName: string;
+  project_id: string;
+  regulation_name: string;
   status: 'pending' | 'in_review' | 'approved' | 'rejected' | 'expired';
   progress: number;
-  submissionDate: string;
-  approvalDate?: string;
-  expiryDate?: string;
+  submission_date: string;
+  approval_date: string | null;
+  expiry_date: string | null;
   documents: string[];
-  notes: string;
-  assignedTo: string;
-}
+  notes: string | null;
+  assigned_to: string;
+  project?: { name: string };
+  assigned_user?: { full_name: string };
+  created_at: string;
+  updated_at: string;
+};
 
-const mockRegulations: Regulation[] = [
+const mockRegulations = [
   {
     id: '1',
     name: 'PROSOL Residential',
@@ -124,50 +116,6 @@ const mockRegulations: Regulation[] = [
   }
 ];
 
-const mockComplianceRecords: ComplianceRecord[] = [
-  {
-    id: '1',
-    projectId: '1',
-    projectName: 'Residential Solar Installation - Ahmed Ben Salem',
-    regulationId: '1',
-    regulationName: 'PROSOL Residential',
-    status: 'approved',
-    progress: 100,
-    submissionDate: '2024-01-10',
-    approvalDate: '2024-01-25',
-    expiryDate: '2025-01-25',
-    documents: ['permit.pdf', 'specs.pdf', 'cert.pdf'],
-    notes: 'All requirements met. Approved for installation.',
-    assignedTo: 'Sarah Hadj'
-  },
-  {
-    id: '2',
-    projectId: '2',
-    projectName: 'Industrial Solar Array - Fatima Manufacturing',
-    regulationId: '2',
-    regulationName: 'Industrial Solar Permit',
-    status: 'in_review',
-    progress: 75,
-    submissionDate: '2024-01-15',
-    documents: ['eia.pdf', 'grid_study.pdf'],
-    notes: 'Pending fire safety certificate submission.',
-    assignedTo: 'Mohamed Ali'
-  },
-  {
-    id: '3',
-    projectId: '3',
-    projectName: 'Agricultural Off-Grid System - Mohamed Agri Farm',
-    regulationId: '3',
-    regulationName: 'Agricultural Off-Grid',
-    status: 'pending',
-    progress: 40,
-    submissionDate: '2024-01-20',
-    documents: ['land_cert.pdf'],
-    notes: 'Waiting for environmental clearance.',
-    assignedTo: 'Amina Tounsi'
-  }
-];
-
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   in_review: 'bg-blue-100 text-blue-800',
@@ -191,12 +139,26 @@ function CompliancePage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>(mockComplianceRecords);
-  const [regulations, setRegulations] = useState<Regulation[]>(mockRegulations);
+  const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    if (mounted) {
+      loadComplianceData();
+    }
+  }, []);
+
+  const loadComplianceData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await fetchComplianceRecords();
+      setComplianceRecords(data || []);
+    } catch (error) {
+      console.error('Error loading compliance data:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   // Avoid hydration mismatch
@@ -214,8 +176,8 @@ function CompliancePage() {
   }
 
   const filteredRecords = complianceRecords.filter(record => {
-    const matchesSearch = record.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.regulationName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (record.project?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         record.regulation_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
@@ -324,10 +286,10 @@ function CompliancePage() {
                     <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
-                          {typeIcons[regulations.find(r => r.id === record.regulationId)?.type || 'residential']}
+                          {typeIcons['residential']}
                           <div>
-                            <p className="font-medium">{record.projectName}</p>
-                            <p className="text-sm text-gray-600">{record.regulationName}</p>
+                            <p className="font-medium">{record.project?.name || 'Unknown Project'}</p>
+                            <p className="text-sm text-gray-600">{record.regulation_name}</p>
                           </div>
                         </div>
                       </div>
@@ -404,14 +366,14 @@ function CompliancePage() {
                         <tr key={record.id} className="border-b hover:bg-gray-50">
                           <td className="py-4 px-4">
                             <div>
-                              <div className="font-medium">{record.projectName}</div>
-                              <div className="text-sm text-gray-500">ID: {record.projectId}</div>
+                              <div className="font-medium">{record.project?.name || 'Unknown Project'}</div>
+                              <div className="text-sm text-gray-500">ID: {record.project_id}</div>
                             </div>
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center space-x-2">
-                              {typeIcons[regulations.find(r => r.id === record.regulationId)?.type || 'residential']}
-                              <span>{record.regulationName}</span>
+                              {typeIcons['residential']}
+                              <span>{record.regulation_name}</span>
                             </div>
                           </td>
                           <td className="py-4 px-4">
@@ -428,15 +390,15 @@ function CompliancePage() {
                             </div>
                           </td>
                           <td className="py-4 px-4">
-                            <div className="text-sm">{record.submissionDate}</div>
-                            {record.approvalDate && (
+                            <div className="text-sm">{new Date(record.submission_date).toLocaleDateString()}</div>
+                            {record.approval_date && (
                               <div className="text-xs text-green-600">
-                                Approved: {record.approvalDate}
+                                Approved: {new Date(record.approval_date).toLocaleDateString()}
                               </div>
                             )}
                           </td>
                           <td className="py-4 px-4">
-                            <div className="text-sm">{record.assignedTo}</div>
+                            <div className="text-sm">{record.assigned_user?.full_name || 'Unassigned'}</div>
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center space-x-2">
@@ -470,7 +432,7 @@ function CompliancePage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {regulations.map((regulation) => (
+                  {mockRegulations.map((regulation) => (
                     <Card key={regulation.id} className="border-l-4 border-l-blue-500">
                       <CardHeader>
                         <div className="flex items-start justify-between">
