@@ -141,24 +141,27 @@ function CompliancePage() {
   const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    if (mounted) {
-      loadComplianceData();
-    }
-  }, []);
+const loadComplianceData = useCallback(async () => {
+  try {
+    setLoading(true);
+    const data = await fetchComplianceRecords();
+    setComplianceRecords(data || []);
+  } catch (error) {
+    console.error('Error loading compliance data:', error);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
-  const loadComplianceData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fetchComplianceRecords();
-      setComplianceRecords(data || []);
-    } catch (error) {
-      console.error('Error loading compliance data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+useEffect(() => {
+  setMounted(true);
+}, []);
+
+useEffect(() => {
+  if (mounted) {
+    loadComplianceData();
+  }
+}, [mounted, loadComplianceData]);
 
   // Avoid hydration mismatch
   if (!mounted) {
