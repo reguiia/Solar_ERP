@@ -475,7 +475,7 @@ export type Database = {
           notes: string | null
           assigned_to: string
           created_at: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
