@@ -145,7 +145,7 @@ const loadComplianceData = useCallback(async () => {
   try {
     setLoading(true);
     const data = await fetchComplianceRecords();
-    setComplianceRecords(data);
+    setComplianceRecords(data || []);
   } catch (error) {
     console.error('Error loading compliance data:', error);
   } finally {
