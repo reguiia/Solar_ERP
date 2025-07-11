@@ -730,7 +730,7 @@ export const fetchComplianceRecords = async () => {
   if (error) throw error;
 
   // If you need related data, fetch separately
-  return data || [];
+  return data ;
 };
 
 export const fetchDashboardStats = async () => {
