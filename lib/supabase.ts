@@ -724,11 +724,7 @@ export const fetchInvoices = async () => {
 export const fetchComplianceRecords = async () => {
   const { data, error } = await supabase
     .from('compliance_records')
-    .select(`
-      *,
-      project:projects(name),
-      assigned_user:users!compliance_records_assigned_to_fkey(full_name)
-    `)
+    .select(`*, project:projects(name), assigned_user:users!compliance_records_assigned_to_fkey(full_name)`)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
