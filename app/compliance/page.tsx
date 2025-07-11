@@ -185,7 +185,7 @@ function CompliancePage() {
     totalSubmissions: complianceRecords.length,
     approved: complianceRecords.filter(r => r.status === 'approved').length,
     pending: complianceRecords.filter(r => r.status === 'pending').length,
-    inReview: complianceRecords.filter(r => r.status === 'in_review').length
+    inReview: complianceRecords.filter(r => r.status === 'in_review').length,
   };
 
   return (
