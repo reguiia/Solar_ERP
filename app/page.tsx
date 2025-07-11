@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { 
@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { supabase } from '@/lib/supabase';
+import { supabase, fetchDashboardStats } from '@/lib/supabase';
 
 interface Module {
   id: string;
@@ -57,7 +57,8 @@ export default function Dashboard() {
     conversionRate: 0,
     totalLeads: 0,
     qualifiedLeads: 0,
-    completedProjects: 0
+    completedProjects: 0,
+    totalCustomers: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -137,62 +138,20 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
-    fetchDashboardStats();
+    loadDashboardStats();
   }, []);
 
-  const fetchDashboardStats = async () => {
+  const loadDashboardStats = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Fetch leads data
-      const { data: leads, error: leadsError } = await supabase
-        .from('leads')
-        .select('*');
-      
-      if (leadsError) {
-        console.error('Error fetching leads:', leadsError);
-      }
-
-      // Fetch projects data
-      const { data: projects, error: projectsError } = await supabase
-        .from('projects')
-        .select('*');
-      
-      if (projectsError) {
-        console.error('Error fetching projects:', projectsError);
-      }
-
-      // Calculate stats
-      const totalLeads = leads?.length || 127; // Fallback to mock data
-      const qualifiedLeads = leads?.filter(lead => lead.status === 'qualified').length || 42;
-      const activeProjects = projects?.filter(project => project.status !== 'completed').length || 42;
-      const completedProjects = projects?.filter(project => project.status === 'completed').length || 12;
-      const totalRevenue = projects?.reduce((sum, project) => sum + (project.budget || 0), 0) || 145230;
-      const conversionRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 68;
-
-      setStats({
-        totalRevenue,
-        activeProjects,
-        conversionRate,
-        totalLeads,
-        qualifiedLeads,
-        completedProjects
-      });
+      const dashboardStats = await fetchDashboardStats();
+      setStats(dashboardStats);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      // Use fallback mock data
-      setStats({
-        totalRevenue: 145230,
-        activeProjects: 42,
-        conversionRate: 68,
-        totalLeads: 127,
-        qualifiedLeads: 42,
-        completedProjects: 12
-      });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
