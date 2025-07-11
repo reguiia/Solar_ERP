@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { supabase, fetchComplianceRecords } from '@/lib/supabase';
+import { z } from 'zod';
 
 // Types based on database schema
 type ComplianceRecord = {
@@ -48,6 +49,25 @@ type ComplianceRecord = {
   updated_at: string;
 };
 
+
+const ComplianceRecordSchema = z.object({
+  id: z.string(),
+  project_id: z.string(),
+  regulation_name: z.string(),
+  status: z.enum(['pending', 'in_review', 'approved', 'rejected', 'expired']),
+  progress: z.number(),
+  submission_date: z.string(),
+  approval_date: z.string().nullable(),
+  expiry_date: z.string().nullable().optional(),
+  documents: z.array(z.string()).optional(),
+  notes: z.string().nullable(),
+  assigned_to: z.string(),
+  created_at: z.string(),
+  updated_at: z.string().optional(),
+});
+const parsedData = ComplianceRecordSchema.array().parse(data);
+setComplianceRecords(parsedData);
+export type ComplianceRecord = z.infer<typeof ComplianceRecordSchema>;
 const mockRegulations = [
   {
     id: '1',
