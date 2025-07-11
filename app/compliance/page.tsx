@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
@@ -202,7 +201,7 @@ function CompliancePage() {
                 </Button>
               </Link>
               <h1 className="text-xl font-semibold text-gray-900">
-                {t ? t('nav.compliance') : 'Compliance'} - Regulatory Compliance
+                {t('nav.compliance')} - Regulatory Compliance
               </h1>
             </div>
             <div className="flex space-x-2">
@@ -218,7 +217,6 @@ function CompliancePage() {
           </div>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
@@ -227,7 +225,6 @@ function CompliancePage() {
             <TabsTrigger value="regulations">Regulations</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
           </TabsList>
-
           <TabsContent value="overview" className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -274,7 +271,6 @@ function CompliancePage() {
                 </CardContent>
               </Card>
             </div>
-
             {/* Recent Submissions */}
             <Card>
               <CardHeader>
@@ -310,7 +306,6 @@ function CompliancePage() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="submissions" className="space-y-6">
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-4">
@@ -341,7 +336,6 @@ function CompliancePage() {
                 </Button>
               </div>
             </div>
-
             {/* Submissions Table */}
             <Card>
               <CardHeader>
@@ -421,7 +415,6 @@ function CompliancePage() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="regulations" className="space-y-6">
             <Card>
               <CardHeader>
@@ -484,7 +477,6 @@ function CompliancePage() {
               </CardContent>
             </Card>
           </TabsContent>
-
           <TabsContent value="templates" className="space-y-6">
             <Card>
               <CardHeader>
