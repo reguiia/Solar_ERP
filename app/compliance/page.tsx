@@ -31,23 +31,7 @@ import { supabase, fetchComplianceRecords } from '@/lib/supabase';
 import { z } from 'zod';
 
 // Types based on database schema
-type ComplianceRecord = {
-  id: string;
-  project_id: string;
-  regulation_name: string;
-  status: 'pending' | 'in_review' | 'approved' | 'rejected' | 'expired';
-  progress: number;
-  submission_date: string;
-  approval_date: string | null;
-  expiry_date: string | null;
-  documents: string[];
-  notes: string | null;
-  assigned_to: string;
-  project?: { name: string };
-  assigned_user?: { full_name: string };
-  created_at: string;
-  updated_at: string;
-};
+
 
 
 const ComplianceRecordSchema = z.object({
