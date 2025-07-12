@@ -46,6 +46,7 @@ interface DashboardStats {
   totalLeads: number;
   qualifiedLeads: number;
   completedProjects: number;
+  totalCustomers: number;
 }
 
 export default function Dashboard() {
