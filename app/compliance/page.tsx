@@ -49,9 +49,6 @@ const ComplianceRecordSchema = z.object({
   created_at: z.string(),
   updated_at: z.string().optional(),
 });
-const parsedData = ComplianceRecordSchema.array().parse(data);
-setComplianceRecords(parsedData);
-export type ComplianceRecord = z.infer<typeof ComplianceRecordSchema>;
 const mockRegulations = [
   {
     id: '1',
