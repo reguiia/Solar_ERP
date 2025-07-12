@@ -649,6 +649,7 @@ export type Database = {
 
 // Helper functions for data fetching
 export const fetchLeads = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('leads')
     .select(`*, assigned_user:users(full_name)`)
@@ -659,6 +660,7 @@ export const fetchLeads = async () => {
 };
 
 export const fetchProjects = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('projects')
     .select(`*, customer:customers(name, email, phone), manager:users!projects_project_manager_fkey(full_name)`)
@@ -669,6 +671,7 @@ export const fetchProjects = async () => {
 };
 
 export const fetchCustomers = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('customers')
     .select('*')
@@ -679,6 +682,7 @@ export const fetchCustomers = async () => {
 };
 
 export const fetchSuppliers = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('suppliers')
     .select('*')
@@ -689,6 +693,7 @@ export const fetchSuppliers = async () => {
 };
 
 export const fetchProducts = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('products')
     .select(`*, supplier:suppliers(name)`)
@@ -699,6 +704,7 @@ export const fetchProducts = async () => {
 };
 
 export const fetchPurchaseOrders = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('purchase_orders')
     .select(`*, supplier:suppliers(name), project:projects(name), items:purchase_order_items(*), product:products(name))`)
@@ -709,6 +715,7 @@ export const fetchPurchaseOrders = async () => {
 };
 
 export const fetchInvoices = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('invoices')
     .select(`
@@ -723,6 +730,7 @@ export const fetchInvoices = async () => {
 };
 
 export const fetchComplianceRecords = async () => {
+  if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('compliance_records')
     .select(`
@@ -747,20 +755,18 @@ export const fetchComplianceRecords = async () => {
 };
 
 export const fetchDashboardStats = async () => {
+  if (!supabase) {
+    return {
+      totalRevenue: 145230,
+      activeProjects: 42,
+      conversionRate: 68,
+      totalLeads: 127,
+      qualifiedLeads: 42,
+      completedProjects: 12,
+      totalCustomers: 85
+    };
+  }
   try {
-    // Return fallback data if Supabase is not configured
-    if (!supabase) {
-      return {
-        totalRevenue: 145230,
-        activeProjects: 42,
-        conversionRate: 68,
-        totalLeads: 127,
-        qualifiedLeads: 42,
-        completedProjects: 12,
-        totalCustomers: 85
-      };
-    }
-
     // Fetch all data in parallel
     const [
       { data: leads },
@@ -776,10 +782,10 @@ export const fetchDashboardStats = async () => {
 
     // Calculate stats
     const totalLeads = leads?.length || 0;
-    const qualifiedLeads = leads?.filter(lead => lead.status === 'qualified').length || 0;
-    const activeProjects = projects?.filter(project => project.status !== 'completed').length || 0;
-    const completedProjects = projects?.filter(project => project.status === 'completed').length || 0;
-    const totalRevenue = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.total_amount, 0) || 0;
+    const qualifiedLeads = leads?.filter((lead: any) => lead.status === 'qualified').length || 0;
+    const activeProjects = projects?.filter((project: any) => project.status !== 'completed').length || 0;
+    const completedProjects = projects?.filter((project: any) => project.status === 'completed').length || 0;
+    const totalRevenue = invoices?.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + inv.total_amount, 0) || 0;
     const conversionRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
 
     return {
