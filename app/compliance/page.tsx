@@ -165,7 +165,13 @@ const loadComplianceData = useCallback(async () => {
   try {
     setLoading(true);
     const data = await fetchComplianceRecords();
-    setComplianceRecords(data || []);
+    // Normalize project and assigned_user fields
+    const normalized = (data || []).map((record: any) => ({
+      ...record,
+      project: Array.isArray(record.project) ? record.project[0] : record.project,
+      assigned_user: Array.isArray(record.assigned_user) ? record.assigned_user[0] : record.assigned_user,
+    }));
+    setComplianceRecords(normalized);
   } catch (error) {
     console.error('Error loading compliance data:', error);
   } finally {
