@@ -707,7 +707,7 @@ export const fetchPurchaseOrders = async () => {
   if (!supabase) throw new Error('Supabase is not configured');
   const { data, error } = await supabase
     .from('purchase_orders')
-    .select(`*, supplier:suppliers(name), project:projects(name), items:purchase_order_items(*), product:products(name))`)
+    .select(`*, supplier:suppliers(name), project:projects(name), items:purchase_order_items(*), product:products(name)`)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
