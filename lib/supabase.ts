@@ -656,6 +656,9 @@ export type Database = {
 
 // Helper functions for data fetching
 export const fetchLeads = async () => {
+  if (!supabase) {
+    return []; // or fallback data, or throw new Error("Supabase not configured")
+  }
   const { data, error } = await supabase
     .from('leads')
     .select(`*, assigned_user:users(full_name)`)
