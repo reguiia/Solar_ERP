@@ -2,11 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  ArrowLeft,
+  Plus,
+  Search,
+  Filter,
   FileCheck,
   Download,
   Upload,
@@ -19,11 +19,11 @@ import {
   Shield,
   Building,
   Home,
-  Sprout
+  Sprout,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
@@ -64,16 +64,16 @@ const mockRegulations = [
       'System capacity between 1-10 kW',
       'Grid-tied installation only',
       'Certified installer required',
-      'Technical inspection mandatory'
+      'Technical inspection mandatory',
     ],
     documents: [
       'Installation permit',
       'Technical specifications',
       'Installer certification',
-      'Grid connection agreement'
+      'Grid connection agreement',
     ],
     timeline: '30-45 days',
-    status: 'active'
+    status: 'active',
   },
   {
     id: '2',
@@ -85,17 +85,17 @@ const mockRegulations = [
       'Environmental impact assessment',
       'Grid stability study',
       'Fire safety compliance',
-      'Structural engineering report'
+      'Structural engineering report',
     ],
     documents: [
       'EIA report',
       'Grid study',
       'Fire safety certificate',
       'Structural report',
-      'Insurance certificate'
+      'Insurance certificate',
     ],
     timeline: '60-90 days',
-    status: 'active'
+    status: 'active',
   },
   {
     id: '3',
@@ -107,17 +107,17 @@ const mockRegulations = [
       'Agricultural land certification',
       'Water usage permit (if applicable)',
       'Environmental compliance',
-      'Local authority approval'
+      'Local authority approval',
     ],
     documents: [
       'Land ownership certificate',
       'Agricultural permit',
       'Environmental clearance',
-      'Local approval letter'
+      'Local approval letter',
     ],
     timeline: '45-60 days',
-    status: 'active'
-  }
+    status: 'active',
+  },
 ];
 
 const statusColors: Record<string, string> = {
@@ -128,94 +128,58 @@ const statusColors: Record<string, string> = {
   expired: 'bg-gray-100 text-gray-800',
   active: 'bg-green-100 text-green-800',
   draft: 'bg-gray-100 text-gray-800',
-  archived: 'bg-red-100 text-red-800'
+  archived: 'bg-red-100 text-red-800',
 };
 
-function CompliancePage() {
+const ComplianceRecordSchema = z.object({
+  id: z.string(),
+  project_id: z.string(),
+  regulation_name: z.string(),
+  status: z.enum(['pending', 'in_review', 'approved', 'rejected', 'expired']),
+  progress: z.number(),
+  submission_date: z.string(),
+  approval_date: z.string().nullable(),
+  expiry_date: z.string().nullable().optional(),
+  documents: z.array(z.string()).optional(),
+  notes: z.string().nullable(),
+  assigned_to: z.string(),
+  created_at: z.string(),
+  updated_at: z.string().optional(),
+  project: z
+    .object({
+      name: z.string(),
+    })
+    .optional(),
+  assigned_user: z
+    .object({
+      full_name: z.string(),
+    })
+    .optional(),
+});
+
+function CompliancePage({ initialComplianceRecords }: { initialComplianceRecords: ComplianceRecord[] }) {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>([]);
+  const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>(initialComplianceRecords);
   const [loading, setLoading] = useState(false);
 
-  // Move typeIcons inside the component
   const typeIcons: Record<string, React.ReactNode> = {
     residential: <Home className="h-4 w-4" />,
     industrial: <Building className="h-4 w-4" />,
     agricultural: <Sprout className="h-4 w-4" />,
   };
 
-  // Move ComplianceRecordSchema inside the component if only used here
-  const ComplianceRecordSchema = z.object({
-    id: z.string(),
-    project_id: z.string(),
-    regulation_name: z.string(),
-    status: z.enum(['pending', 'in_review', 'approved', 'rejected', 'expired']),
-    progress: z.number(),
-    submission_date: z.string(),
-    approval_date: z.string().nullable(),
-    expiry_date: z.string().nullable().optional(),
-    documents: z.array(z.string()).optional(),
-    notes: z.string().nullable(),
-    assigned_to: z.string(),
-    created_at: z.string(),
-    updated_at: z.string().optional(),
-  });
-
-  // Move fetchComplianceRecords inside the component
   const fetchComplianceRecords = async () => {
-    // Always return mock data during build/SSR
     if (typeof window === 'undefined') {
-      return [
-        {
-          id: '1',
-          regulation_name: 'Building Permit',
-          status: 'approved' as const,
-          progress: 100,
-          submission_date: '2024-01-15',
-          approval_date: '2024-01-20',
-          project_id: 'proj-1',
-          notes: 'All requirements met',
-          assigned_to: 'user-1',
-          created_at: '2024-01-15T10:00:00Z',
-          project: { name: 'Residential Solar Installation' },
-          assigned_user: { full_name: 'John Smith' }
-        },
-        {
-          id: '2',
-          regulation_name: 'Electrical Permit',
-          status: 'in_review' as const,
-          progress: 75,
-          submission_date: '2024-01-18',
-          approval_date: null,
-          project_id: 'proj-2',
-          notes: 'Waiting for final inspection',
-          assigned_to: 'user-2',
-          created_at: '2024-01-18T14:30:00Z',
-          project: { name: 'Commercial Solar Array' },
-          assigned_user: { full_name: 'Sarah Johnson' }
-        },
-        {
-          id: '3',
-          regulation_name: 'Environmental Impact Assessment',
-          status: 'pending' as const,
-          progress: 25,
-          submission_date: '2024-01-22',
-          approval_date: null,
-          project_id: 'proj-3',
-          notes: 'Initial documentation submitted',
-          assigned_to: 'user-3',
-          created_at: '2024-01-22T09:15:00Z',
-          project: { name: 'Agricultural Solar Farm' },
-          assigned_user: { full_name: 'Mike Davis' }
-        }
-      ];
+      // Mock data is handled by getStaticProps
+      return [];
     }
 
-    // Otherwise, fetch from Supabase in the browser
     if (!supabase) {
+      console.error('Supabase client is not initialized');
       return [];
     }
 
@@ -237,22 +201,27 @@ function CompliancePage() {
       `)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
 
-    return data || [];
+    const normalized = (data || []).map((record: any) => ({
+      ...record,
+      project: Array.isArray(record.project) ? record.project[0] : record.project || { name: 'Unknown Project' },
+      assigned_user: Array.isArray(record.assigned_user)
+        ? record.assigned_user[0]
+        : record.assigned_user || { full_name: 'Unassigned' },
+    }));
+
+    return normalized.map((record) => ComplianceRecordSchema.parse(record));
   };
 
   const loadComplianceData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchComplianceRecords();
-      // Normalize project and assigned_user fields
-      const normalized = (data || []).map((record: any) => ({
-        ...record,
-        project: Array.isArray(record.project) ? record.project[0] : record.project,
-        assigned_user: Array.isArray(record.assigned_user) ? record.assigned_user[0] : record.assigned_user,
-      }));
-      setComplianceRecords(normalized);
+      setComplianceRecords(data);
     } catch (error) {
       console.error('Error loading compliance data:', error);
     } finally {
@@ -270,7 +239,6 @@ function CompliancePage() {
     }
   }, [mounted, loadComplianceData]);
 
-  // Avoid hydration mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -284,23 +252,23 @@ function CompliancePage() {
     );
   }
 
-  const filteredRecords = complianceRecords.filter(record => {
-    const matchesSearch = (record.project?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.regulation_name.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredRecords = complianceRecords.filter((record) => {
+    const matchesSearch =
+      (record.project?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.regulation_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
 
   const stats = {
     totalSubmissions: complianceRecords.length,
-    approved: complianceRecords.filter(r => r.status === 'approved').length,
-    pending: complianceRecords.filter(r => r.status === 'pending').length,
-    inReview: complianceRecords.filter(r => r.status === 'in_review').length,
+    approved: complianceRecords.filter((r) => r.status === 'approved').length,
+    pending: complianceRecords.filter((r) => r.status === 'pending').length,
+    inReview: complianceRecords.filter((r) => r.status === 'in_review').length,
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -336,7 +304,6 @@ function CompliancePage() {
             <TabsTrigger value="templates">Templates</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-6">
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -356,7 +323,10 @@ function CompliancePage() {
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
                   <p className="text-xs text-muted-foreground">
-                    {stats.totalSubmissions > 0 ? Math.round((stats.approved / stats.totalSubmissions) * 100) : 0}% approval rate
+                    {stats.totalSubmissions > 0
+                      ? Math.round((stats.approved / stats.totalSubmissions) * 100)
+                      : 0}
+                    % approval rate
                   </p>
                 </CardContent>
               </Card>
@@ -381,7 +351,6 @@ function CompliancePage() {
                 </CardContent>
               </Card>
             </div>
-            {/* Recent Submissions */}
             <Card>
               <CardHeader>
                 <CardTitle>Recent Compliance Submissions</CardTitle>
@@ -417,7 +386,6 @@ function CompliancePage() {
             </Card>
           </TabsContent>
           <TabsContent value="submissions" className="space-y-6">
-            {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -446,7 +414,6 @@ function CompliancePage() {
                 </Button>
               </div>
             </div>
-            {/* Submissions Table */}
             <Card>
               <CardHeader>
                 <CardTitle>Compliance Submissions</CardTitle>
@@ -591,9 +558,7 @@ function CompliancePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Document Templates</CardTitle>
-                <p className="text-sm text-gray-600">
-                  Pre-filled templates for compliance documentation
-                </p>
+                <p className="text-sm text-gray-600">Pre-filled templates for compliance documentation</p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -674,3 +639,58 @@ function CompliancePage() {
 }
 
 export default CompliancePage;
+
+export async function getStaticProps() {
+  const mockData = [
+    {
+      id: '1',
+      regulation_name: 'Building Permit',
+      status: 'approved',
+      progress: 100,
+      submission_date: '2024-01-15',
+      approval_date: '2024-01-20',
+      project_id: 'proj-1',
+      notes: 'All requirements met',
+      assigned_to: 'user-1',
+      created_at: '2024-01-15T10:00:00Z',
+      project: { name: 'Residential Solar Installation' },
+      assigned_user: { full_name: 'John Smith' },
+    },
+    {
+      id: '2',
+      regulation_name: 'Electrical Permit',
+      status: 'in_review',
+      progress: 75,
+      submission_date: '2024-01-18',
+      approval_date: null,
+      project_id: 'proj-2',
+      notes: 'Waiting for final inspection',
+      assigned_to: 'user-2',
+      created_at: '2024-01-18T14:30:00Z',
+      project: { name: 'Commercial Solar Array' },
+      assigned_user: { full_name: 'Sarah Johnson' },
+    },
+    {
+      id: '3',
+      regulation_name: 'Environmental Impact Assessment',
+      status: 'pending',
+      progress: 25,
+      submission_date: '2024-01-22',
+      approval_date: null,
+      project_id: 'proj-3',
+      notes: 'Initial documentation submitted',
+      assigned_to: 'user-3',
+      created_at: '2024-01-22T09:15:00Z',
+      project: { name: 'Agricultural Solar Farm' },
+      assigned_user: { full_name: 'Mike Davis' },
+    },
+  ];
+
+  return {
+    props: {
+      initialComplianceRecords: mockData.map((record) => ComplianceRecordSchema.parse(record)),
+    },
+    // Optional: Revalidate every 60 seconds for Incremental Static Regeneration (ISR)
+    revalidate: 60,
+  };
+}
