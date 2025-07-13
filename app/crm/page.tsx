@@ -49,7 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { fetchLeads } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface Lead {
   id: string;
@@ -166,175 +166,6 @@ interface FollowUpTask {
   completedAt?: string;
 }
 
-const mockLeads: Lead[] = [
-  {
-    id: '1',
-    name: 'Ahmed Ben Salem',
-    email: 'ahmed.salem@email.com',
-    phone: '+216 20 123 456',
-    company: 'Salem Trading',
-    location: {
-      address: 'Villa 15, Sidi Bou Said',
-      city: 'Tunis',
-      coordinates: { lat: 36.8685, lng: 10.3470 }
-    },
-    source: 'website',
-    status: 'qualified',
-    type: 'residential',
-    estimatedValue: 15000,
-    probability: 75,
-    lastContact: '2024-01-15',
-    nextFollowUp: '2024-01-22',
-    tags: ['Hot Lead', 'Referral', 'High Value'],
-    assignedTo: {
-      id: 'u1',
-      name: 'Sarah Hadj',
-      email: 'sarah.hadj@company.tn'
-    },
-    leadScore: 85,
-    notes: [],
-    activities: [],
-    documents: [],
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Fatima Manufacturing SARL',
-    email: 'contact@fatima-mfg.tn',
-    phone: '+216 71 234 567',
-    company: 'Fatima Manufacturing',
-    location: {
-      address: 'Zone Industrielle',
-      city: 'Sfax',
-      coordinates: { lat: 34.7406, lng: 10.7603 }
-    },
-    source: 'referral',
-    status: 'proposal',
-    type: 'industrial',
-    estimatedValue: 120000,
-    probability: 60,
-    lastContact: '2024-01-14',
-    nextFollowUp: '2024-01-21',
-    tags: ['Large Project', 'Manufacturing', 'Energy Savings'],
-    assignedTo: {
-      id: 'u2',
-      name: 'Mohamed Ali',
-      email: 'mohamed.ali@company.tn'
-    },
-    leadScore: 78,
-    notes: [],
-    activities: [],
-    documents: [],
-    createdAt: '2024-01-08',
-    updatedAt: '2024-01-14'
-  },
-  {
-    id: '3',
-    name: 'Mohamed Agri Farm',
-    email: 'mohamed.agri@email.com',
-    phone: '+216 25 345 678',
-    location: {
-      address: 'Route de Sousse, Km 15',
-      city: 'Kairouan',
-      coordinates: { lat: 35.6781, lng: 10.0963 }
-    },
-    source: 'social_media',
-    status: 'contacted',
-    type: 'agricultural',
-    estimatedValue: 25000,
-    probability: 40,
-    lastContact: '2024-01-13',
-    nextFollowUp: '2024-01-20',
-    tags: ['Agriculture', 'Off-Grid', 'Government Subsidy'],
-    assignedTo: {
-      id: 'u3',
-      name: 'Amina Tounsi',
-      email: 'amina.tounsi@company.tn'
-    },
-    leadScore: 65,
-    notes: [],
-    activities: [],
-    documents: [],
-    createdAt: '2024-01-05',
-    updatedAt: '2024-01-13'
-  },
-  {
-    id: '4',
-    name: 'Nour Hotel Group',
-    email: 'sustainability@nourhotels.tn',
-    phone: '+216 71 456 789',
-    company: 'Nour Hotel Group',
-    location: {
-      address: 'Avenue Habib Bourguiba',
-      city: 'Sousse',
-      coordinates: { lat: 35.8256, lng: 10.6369 }
-    },
-    source: 'trade_show',
-    status: 'new',
-    type: 'industrial',
-    estimatedValue: 80000,
-    probability: 20,
-    lastContact: '2024-01-18',
-    tags: ['Hospitality', 'Sustainability', 'Multiple Locations'],
-    assignedTo: {
-      id: 'u1',
-      name: 'Sarah Hadj',
-      email: 'sarah.hadj@company.tn'
-    },
-    leadScore: 45,
-    notes: [],
-    activities: [],
-    documents: [],
-    createdAt: '2024-01-18',
-    updatedAt: '2024-01-18'
-  }
-];
-
-const mockCustomers: Customer[] = [
-  {
-    id: 'c1',
-    name: 'Karim Mansouri',
-    email: 'karim.mansouri@email.com',
-    phone: '+216 20 987 654',
-    company: 'Mansouri Enterprises',
-    address: 'Rue de la République 45',
-    city: 'Tunis',
-    postalCode: '1001',
-    taxId: 'TN123456789',
-    customerSince: '2023-06-15',
-    totalProjects: 2,
-    totalValue: 35000,
-    status: 'active',
-    preferredContact: 'email',
-    leadId: 'old_lead_1',
-    projects: ['proj_1', 'proj_2'],
-    notes: [],
-    createdAt: '2023-06-15',
-    updatedAt: '2024-01-10'
-  },
-  {
-    id: 'c2',
-    name: 'Textile Industries SA',
-    email: 'procurement@textile-sa.tn',
-    phone: '+216 73 123 456',
-    company: 'Textile Industries SA',
-    address: 'Zone Industrielle Monastir',
-    city: 'Monastir',
-    postalCode: '5000',
-    taxId: 'TN987654321',
-    customerSince: '2023-09-20',
-    totalProjects: 1,
-    totalValue: 150000,
-    status: 'active',
-    preferredContact: 'phone',
-    projects: ['proj_3'],
-    notes: [],
-    createdAt: '2023-09-20',
-    updatedAt: '2024-01-05'
-  }
-];
-
 const statusColors = {
   new: 'bg-gray-100 text-gray-800',
   contacted: 'bg-blue-100 text-blue-800',
@@ -377,13 +208,13 @@ export default function CRMPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSource, setSelectedSource] = useState('all');
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const filteredLeads = leads.filter(lead => {
+  const filteredLeads = leads.filter((lead: Lead) => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (lead.company && lead.company.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -393,7 +224,7 @@ export default function CRMPage() {
     return matchesSearch && matchesStatus && matchesType && matchesSource;
   });
 
-  const filteredCustomers = customers.filter(customer => {
+  const filteredCustomers = customers.filter((customer: Customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (customer.company && customer.company.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -404,31 +235,59 @@ export default function CRMPage() {
     totalLeads: leads.length,
     qualifiedLeads: leads.filter(l => l.status === 'qualified').length,
     conversionRate: leads.length > 0 ? Math.round((leads.filter(l => l.status === 'closed_won').length / leads.length) * 100) : 0,
-    pipelineValue: leads.reduce((sum, l) => sum + (l.estimatedValue * l.probability / 100), 0),
+    pipelineValue: leads.reduce((sum: number, l: Lead) => sum + (l.estimatedValue * l.probability / 100), 0),
     totalCustomers: customers.length,
     activeCustomers: customers.filter(c => c.status === 'active').length,
-    avgDealSize: leads.length > 0 ? Math.round(leads.reduce((sum, l) => sum + l.estimatedValue, 0) / leads.length) : 0,
-    avgLeadScore: leads.length > 0 ? Math.round(leads.reduce((sum, l) => sum + l.leadScore, 0) / leads.length) : 0
+    avgDealSize: leads.length > 0 ? Math.round(leads.reduce((sum: number, l: Lead) => sum + l.estimatedValue, 0) / leads.length) : 0,
+    avgLeadScore: leads.length > 0 ? Math.round(leads.reduce((sum: number, l: Lead) => sum + l.leadScore, 0) / leads.length) : 0
   };
 
   useEffect(() => {
-    fetchCRMData();
+    fetchLeadsData();
   }, []);
 
-  const fetchCRMData = async () => {
+  const fetchLeadsData = async () => {
     try {
-      setLoading(true);
-      // In a real app, fetch from Supabase
-      // const { data: leadsData, error: leadsError } = await supabase.from('leads').select('*');
-      // const { data: customersData, error: customersError } = await supabase.from('customers').select('*');
-      // if (leadsError) throw leadsError;
-      // if (customersError) throw customersError;
-      // setLeads(leadsData || []);
-      // setCustomers(customersData || []);
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*, assigned_user:users(full_name)')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      // Transform data to Lead interface
+      const transformed = (data || []).map((l: any): Lead => ({
+        id: l.id,
+        name: l.name,
+        email: l.email,
+        phone: l.phone,
+        company: l.company || '',
+        location: {
+          address: l.location || '',
+          city: '', // You may want to parse city from location if needed
+          coordinates: undefined,
+        },
+        source: l.source,
+        status: l.status === 'closed' ? 'closed_won' : l.status, // Map to local status
+        type: l.type,
+        estimatedValue: l.estimated_value,
+        probability: 0, // Not in DB, set default or calculate
+        lastContact: l.last_contact,
+        nextFollowUp: '',
+        tags: l.tags || [],
+        assignedTo: {
+          id: l.assigned_to || '',
+          name: l.assigned_user?.full_name || '',
+          email: '',
+        },
+        leadScore: 0, // Not in DB, set default or calculate
+        notes: [],
+        activities: [],
+        documents: [],
+        createdAt: l.created_at,
+        updatedAt: l.updated_at,
+      }));
+      setLeads(transformed);
     } catch (error) {
-      console.error('Error fetching CRM data:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching leads:', error);
     }
   };
 
@@ -544,7 +403,7 @@ export default function CRMPage() {
                     ).map(([status, colorClass]) => {
                       const count = leads.filter(l => l.status === status).length;
                       const percentage = leads.length > 0 ? (count / leads.length) * 100 : 0;
-                      const value = leads.filter(l => l.status === status).reduce((sum, l) => sum + l.estimatedValue, 0);
+                      const value = leads.filter(l => l.status === status).reduce((sum: number, l: Lead) => sum + l.estimatedValue, 0);
                       
                       return (
                         <div key={status} className="space-y-2">
@@ -958,7 +817,7 @@ export default function CRMPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   {['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won'].map((status) => {
                     const statusLeads = leads.filter(l => l.status === status);
-                    const statusValue = statusLeads.reduce((sum, l) => sum + l.estimatedValue, 0);
+                    const statusValue = statusLeads.reduce((sum: number, l: Lead) => sum + l.estimatedValue, 0);
                     
                     return (
                       <div key={status} className="bg-gray-50 rounded-lg p-4">
