@@ -669,6 +669,7 @@ export const fetchLeads = async () => {
 };
 
 export const fetchProjects = async () => {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('projects')
     .select(`*, customer:customers(name, email, phone), manager:users!projects_project_manager_fkey(full_name)`)
@@ -679,6 +680,7 @@ export const fetchProjects = async () => {
 };
 
 export const fetchCustomers = async () => {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('customers')
     .select('*')
@@ -689,6 +691,7 @@ export const fetchCustomers = async () => {
 };
 
 export const fetchSuppliers = async () => {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('suppliers')
     .select('*')
@@ -699,6 +702,7 @@ export const fetchSuppliers = async () => {
 };
 
 export const fetchProducts = async () => {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('products')
     .select(`*, supplier:suppliers(name)`)
@@ -709,6 +713,7 @@ export const fetchProducts = async () => {
 };
 
 export const fetchPurchaseOrders = async () => {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('purchase_orders')
     .select(`*, supplier:suppliers(name), project:projects(name), items:purchase_order_items(*), product:products(name))`)
@@ -719,6 +724,7 @@ export const fetchPurchaseOrders = async () => {
 };
 
 export const fetchInvoices = async () => {
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from('invoices')
     .select(`
