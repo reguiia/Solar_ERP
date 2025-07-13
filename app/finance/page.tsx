@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ArrowLeft, 
@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/lib/supabase';
 
 interface Invoice {
   id: string;
@@ -47,60 +48,6 @@ interface Subsidy {
   projectId: string;
 }
 
-const mockInvoices: Invoice[] = [
-  {
-    id: 'INV-001',
-    projectName: 'Residential Solar Installation',
-    clientName: 'Ahmed Ben Salem',
-    amount: 15000,
-    status: 'paid',
-    issueDate: '2024-01-15',
-    dueDate: '2024-02-15',
-    type: 'invoice'
-  },
-  {
-    id: 'QUO-002',
-    projectName: 'Industrial Solar Array',
-    clientName: 'Fatima Manufacturing',
-    amount: 120000,
-    status: 'sent',
-    issueDate: '2024-01-20',
-    dueDate: '2024-02-20',
-    type: 'quote'
-  },
-  {
-    id: 'INV-003',
-    projectName: 'Agricultural Off-Grid System',
-    clientName: 'Mohamed Agri Farm',
-    amount: 25000,
-    status: 'overdue',
-    issueDate: '2024-01-10',
-    dueDate: '2024-02-10',
-    type: 'invoice'
-  }
-];
-
-const mockSubsidies: Subsidy[] = [
-  {
-    id: 'SUB-001',
-    name: 'PROSOL Residential',
-    description: 'Government subsidy for residential solar installations',
-    amount: 3000,
-    eligibility: 'Residential customers with roof area > 20m²',
-    status: 'approved',
-    projectId: '1'
-  },
-  {
-    id: 'SUB-002',
-    name: 'Industrial Solar Incentive',
-    description: 'Tax incentive for industrial solar projects',
-    amount: 24000,
-    eligibility: 'Industrial facilities with minimum 50kW capacity',
-    status: 'pending',
-    projectId: '2'
-  }
-];
-
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',
   sent: 'bg-blue-100 text-blue-800',
@@ -114,10 +61,39 @@ const statusColors = {
 export default function FinancePage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  const totalRevenue = mockInvoices.reduce((sum, inv) => sum + inv.amount, 0);
-  const paidInvoices = mockInvoices.filter(inv => inv.status === 'paid');
-  const overdueInvoices = mockInvoices.filter(inv => inv.status === 'overdue');
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*, project:projects(name), customer:customers(name)')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      // Transform data to Invoice interface
+      const transformed = (data || []).map((inv: any): Invoice => ({
+        id: inv.id,
+        projectName: inv.project?.name || '',
+        clientName: inv.customer?.name || '',
+        amount: inv.total_amount,
+        status: inv.status,
+        issueDate: inv.issue_date,
+        dueDate: inv.due_date,
+        type: 'invoice', // or infer from data if available
+      }));
+      setInvoices(transformed);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+    }
+  };
+
+  const totalRevenue = invoices.reduce((sum: number, inv: Invoice) => sum + inv.amount, 0);
+  const paidInvoices = invoices.filter((inv: Invoice) => inv.status === 'paid');
+  const overdueInvoices = invoices.filter((inv: Invoice) => inv.status === 'overdue');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -203,7 +179,8 @@ export default function FinancePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {mockSubsidies.reduce((sum, sub) => sum + sub.amount, 0).toLocaleString()} TND
+                    {/* mockSubsidies.reduce((sum, sub) => sum + sub.amount, 0).toLocaleString() */}
+                    Subsidies data not yet implemented
                   </div>
                   <p className="text-xs text-muted-foreground">Available incentives</p>
                 </CardContent>
@@ -291,7 +268,7 @@ export default function FinancePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockInvoices.map((invoice) => (
+                      {invoices.map((invoice) => (
                         <tr key={invoice.id} className="border-b hover:bg-gray-50">
                           <td className="py-4 px-4">
                             <div className="font-medium">{invoice.id}</div>
@@ -346,43 +323,45 @@ export default function FinancePage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {mockSubsidies.map((subsidy) => (
-                    <Card key={subsidy.id} className="border-l-4 border-l-blue-500">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-lg">{subsidy.name}</CardTitle>
-                            <p className="text-sm text-gray-600 mt-1">{subsidy.description}</p>
-                          </div>
-                          <Badge className={statusColors[subsidy.status]}>
-                            {subsidy.status.charAt(0).toUpperCase() + subsidy.status.slice(1)}
-                          </Badge>
+                  {/* mockSubsidies.map((subsidy) => ( */}
+                  <Card className="border-l-4 border-l-blue-500">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">Subsidy Example</CardTitle>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Description for Subsidy Example
+                          </p>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Subsidy Amount</p>
-                            <p className="text-xl font-bold text-green-600">
-                              {subsidy.amount.toLocaleString()} TND
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">Eligibility</p>
-                            <p className="text-sm text-gray-600">{subsidy.eligibility}</p>
-                          </div>
-                          <div className="flex space-x-2 pt-2">
-                            <Button variant="outline" size="sm">
-                              View Details
-                            </Button>
-                            <Button size="sm">
-                              Apply Now
-                            </Button>
-                          </div>
+                        <Badge className={statusColors['pending']}>Pending</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Subsidy Amount</p>
+                          <p className="text-xl font-bold text-green-600">
+                            1,000 TND
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Eligibility</p>
+                          <p className="text-sm text-gray-600">
+                            Residential customers with roof area > 20m²
+                          </p>
+                        </div>
+                        <div className="flex space-x-2 pt-2">
+                          <Button variant="outline" size="sm">
+                            View Details
+                          </Button>
+                          <Button size="sm">
+                            Apply Now
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  {/* ))} */}
                 </div>
               </CardContent>
             </Card>
