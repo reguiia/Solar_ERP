@@ -347,7 +347,7 @@ export default function FinancePage() {
                         <div>
                           <p className="text-sm font-medium text-gray-700">Eligibility</p>
                           <p className="text-sm text-gray-600">
-                            Residential customers with roof area greater than 20m²
+                            Residential customers with roof area > 20m²
                           </p>
                         </div>
                         <div className="flex space-x-2 pt-2">
