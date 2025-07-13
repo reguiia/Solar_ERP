@@ -53,21 +53,6 @@ interface ComplianceRecord {
   };
 }
 
-const ComplianceRecordSchema = z.object({
-  id: z.string(),
-  project_id: z.string(),
-  regulation_name: z.string(),
-  status: z.enum(['pending', 'in_review', 'approved', 'rejected', 'expired']),
-  progress: z.number(),
-  submission_date: z.string(),
-  approval_date: z.string().nullable(),
-  expiry_date: z.string().nullable().optional(),
-  documents: z.array(z.string()).optional(),
-  notes: z.string().nullable(),
-  assigned_to: z.string(),
-  created_at: z.string(),
-  updated_at: z.string().optional(),
-});
 const mockRegulations = [
   {
     id: '1',
@@ -146,85 +131,6 @@ const statusColors: Record<string, string> = {
   archived: 'bg-red-100 text-red-800'
 };
 
-const typeIcons: Record<string, React.ReactNode> = {
-  residential: <Home className="h-4 w-4" />,
-  industrial: <Building className="h-4 w-4" />,
-  agricultural: <Sprout className="h-4 w-4" />
-};
-
-// Add fetchComplianceRecords locally
-const fetchComplianceRecords = async () => {
-  // Return fallback data if Supabase is not configured
-  if (!supabase) {
-    return [
-      {
-        id: '1',
-        regulation_name: 'Building Permit',
-        status: 'approved' as const,
-        progress: 100,
-        submission_date: '2024-01-15',
-        approval_date: '2024-01-20',
-        project_id: 'proj-1',
-        notes: 'All requirements met',
-        assigned_to: 'user-1',
-        created_at: '2024-01-15T10:00:00Z',
-        project: { name: 'Residential Solar Installation' },
-        assigned_user: { full_name: 'John Smith' }
-      },
-      {
-        id: '2',
-        regulation_name: 'Electrical Permit',
-        status: 'in_review' as const,
-        progress: 75,
-        submission_date: '2024-01-18',
-        approval_date: null,
-        project_id: 'proj-2',
-        notes: 'Waiting for final inspection',
-        assigned_to: 'user-2',
-        created_at: '2024-01-18T14:30:00Z',
-        project: { name: 'Commercial Solar Array' },
-        assigned_user: { full_name: 'Sarah Johnson' }
-      },
-      {
-        id: '3',
-        regulation_name: 'Environmental Impact Assessment',
-        status: 'pending' as const,
-        progress: 25,
-        submission_date: '2024-01-22',
-        approval_date: null,
-        project_id: 'proj-3',
-        notes: 'Initial documentation submitted',
-        assigned_to: 'user-3',
-        created_at: '2024-01-22T09:15:00Z',
-        project: { name: 'Agricultural Solar Farm' },
-        assigned_user: { full_name: 'Mike Davis' }
-      }
-    ];
-  }
-
-  const { data, error } = await supabase
-    .from('compliance_records')
-    .select(`
-      id, 
-      regulation_name, 
-      status, 
-      progress, 
-      submission_date, 
-      approval_date, 
-      project_id, 
-      notes, 
-      assigned_to, 
-      created_at,
-      project:projects(name),
-      assigned_user:users!compliance_records_assigned_to_fkey(full_name)
-    `)
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-
-  return data || [];
-};
-
 function CompliancePage() {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
@@ -234,33 +140,130 @@ function CompliancePage() {
   const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
-const loadComplianceData = useCallback(async () => {
-  try {
-    setLoading(true);
-    const data = await fetchComplianceRecords();
-    // Normalize project and assigned_user fields
-    const normalized = (data || []).map((record: any) => ({
-      ...record,
-      project: Array.isArray(record.project) ? record.project[0] : record.project,
-      assigned_user: Array.isArray(record.assigned_user) ? record.assigned_user[0] : record.assigned_user,
-    }));
-    setComplianceRecords(normalized);
-  } catch (error) {
-    console.error('Error loading compliance data:', error);
-  } finally {
-    setLoading(false);
-  }
-}, []);
+  // Move typeIcons inside the component
+  const typeIcons: Record<string, React.ReactNode> = {
+    residential: <Home className="h-4 w-4" />,
+    industrial: <Building className="h-4 w-4" />,
+    agricultural: <Sprout className="h-4 w-4" />,
+  };
 
-useEffect(() => {
-  setMounted(true);
-}, []);
+  // Move ComplianceRecordSchema inside the component if only used here
+  const ComplianceRecordSchema = z.object({
+    id: z.string(),
+    project_id: z.string(),
+    regulation_name: z.string(),
+    status: z.enum(['pending', 'in_review', 'approved', 'rejected', 'expired']),
+    progress: z.number(),
+    submission_date: z.string(),
+    approval_date: z.string().nullable(),
+    expiry_date: z.string().nullable().optional(),
+    documents: z.array(z.string()).optional(),
+    notes: z.string().nullable(),
+    assigned_to: z.string(),
+    created_at: z.string(),
+    updated_at: z.string().optional(),
+  });
 
-useEffect(() => {
-  if (mounted) {
-    loadComplianceData();
-  }
-}, [mounted, loadComplianceData]);
+  // Move fetchComplianceRecords inside the component
+  const fetchComplianceRecords = async () => {
+    // Return fallback data if Supabase is not configured
+    if (!supabase) {
+      return [
+        {
+          id: '1',
+          regulation_name: 'Building Permit',
+          status: 'approved' as const,
+          progress: 100,
+          submission_date: '2024-01-15',
+          approval_date: '2024-01-20',
+          project_id: 'proj-1',
+          notes: 'All requirements met',
+          assigned_to: 'user-1',
+          created_at: '2024-01-15T10:00:00Z',
+          project: { name: 'Residential Solar Installation' },
+          assigned_user: { full_name: 'John Smith' }
+        },
+        {
+          id: '2',
+          regulation_name: 'Electrical Permit',
+          status: 'in_review' as const,
+          progress: 75,
+          submission_date: '2024-01-18',
+          approval_date: null,
+          project_id: 'proj-2',
+          notes: 'Waiting for final inspection',
+          assigned_to: 'user-2',
+          created_at: '2024-01-18T14:30:00Z',
+          project: { name: 'Commercial Solar Array' },
+          assigned_user: { full_name: 'Sarah Johnson' }
+        },
+        {
+          id: '3',
+          regulation_name: 'Environmental Impact Assessment',
+          status: 'pending' as const,
+          progress: 25,
+          submission_date: '2024-01-22',
+          approval_date: null,
+          project_id: 'proj-3',
+          notes: 'Initial documentation submitted',
+          assigned_to: 'user-3',
+          created_at: '2024-01-22T09:15:00Z',
+          project: { name: 'Agricultural Solar Farm' },
+          assigned_user: { full_name: 'Mike Davis' }
+        }
+      ];
+    }
+
+    const { data, error } = await supabase
+      .from('compliance_records')
+      .select(`
+        id, 
+        regulation_name, 
+        status, 
+        progress, 
+        submission_date, 
+        approval_date, 
+        project_id, 
+        notes, 
+        assigned_to, 
+        created_at,
+        project:projects(name),
+        assigned_user:users!compliance_records_assigned_to_fkey(full_name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+  };
+
+  const loadComplianceData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await fetchComplianceRecords();
+      // Normalize project and assigned_user fields
+      const normalized = (data || []).map((record: any) => ({
+        ...record,
+        project: Array.isArray(record.project) ? record.project[0] : record.project,
+        assigned_user: Array.isArray(record.assigned_user) ? record.assigned_user[0] : record.assigned_user,
+      }));
+      setComplianceRecords(normalized);
+    } catch (error) {
+      console.error('Error loading compliance data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      loadComplianceData();
+    }
+  }, [mounted, loadComplianceData]);
 
   // Avoid hydration mismatch
   if (!mounted) {
