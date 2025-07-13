@@ -31,7 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { fetchProducts } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface Supplier {
   id: string;
@@ -92,180 +92,6 @@ interface PurchaseOrder {
   createdBy: string;
 }
 
-const mockSuppliers: Supplier[] = [
-  {
-    id: '1',
-    name: 'SolarTech Tunisia',
-    email: 'contact@solartech.tn',
-    phone: '+216 71 123 456',
-    address: 'Zone Industrielle Ariana',
-    city: 'Ariana',
-    country: 'Tunisia',
-    category: 'panels',
-    rating: 4.8,
-    status: 'active',
-    paymentTerms: '30 days',
-    deliveryTime: '7-10 days',
-    certifications: ['ISO 9001', 'IEC 61215', 'CE']
-  },
-  {
-    id: '2',
-    name: 'Inverter Solutions SARL',
-    email: 'sales@invertersol.tn',
-    phone: '+216 71 234 567',
-    address: 'Rue de la Technologie, Sfax',
-    city: 'Sfax',
-    country: 'Tunisia',
-    category: 'inverters',
-    rating: 4.6,
-    status: 'active',
-    paymentTerms: '45 days',
-    deliveryTime: '5-7 days',
-    certifications: ['ISO 9001', 'IEC 62109', 'UL']
-  },
-  {
-    id: '3',
-    name: 'MountPro Systems',
-    email: 'info@mountpro.tn',
-    phone: '+216 71 345 678',
-    address: 'Industrial Zone Ben Arous',
-    city: 'Ben Arous',
-    country: 'Tunisia',
-    category: 'mounting',
-    rating: 4.4,
-    status: 'active',
-    paymentTerms: '15 days',
-    deliveryTime: '3-5 days',
-    certifications: ['ISO 9001', 'TUV']
-  }
-];
-
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Monocrystalline Solar Panel 500W',
-    category: 'panels',
-    brand: 'SolarMax',
-    model: 'SM-500M',
-    specifications: {
-      'Power': '500W',
-      'Efficiency': '21.5%',
-      'Voltage': '41.2V',
-      'Current': '12.14A',
-      'Dimensions': '2108x1048x35mm'
-    },
-    unitPrice: 450,
-    currency: 'TND',
-    supplierId: '1',
-    supplierName: 'SolarTech Tunisia',
-    stockLevel: 150,
-    minStock: 50,
-    maxStock: 300,
-    unit: 'piece',
-    warranty: '25 years',
-    certifications: ['IEC 61215', 'IEC 61730', 'CE']
-  },
-  {
-    id: '2',
-    name: 'String Inverter 10kW',
-    category: 'inverters',
-    brand: 'PowerTech',
-    model: 'PT-10K-S',
-    specifications: {
-      'Power': '10kW',
-      'Efficiency': '98.2%',
-      'Input Voltage': '200-1000V',
-      'Output Voltage': '230V',
-      'Phases': 'Single'
-    },
-    unitPrice: 2800,
-    currency: 'TND',
-    supplierId: '2',
-    supplierName: 'Inverter Solutions SARL',
-    stockLevel: 25,
-    minStock: 10,
-    maxStock: 50,
-    unit: 'piece',
-    warranty: '10 years',
-    certifications: ['IEC 62109', 'UL 1741', 'CE']
-  },
-  {
-    id: '3',
-    name: 'Aluminum Mounting Rail 4m',
-    category: 'mounting',
-    brand: 'MountPro',
-    model: 'MP-AL-4M',
-    specifications: {
-      'Length': '4000mm',
-      'Material': 'Aluminum 6005-T5',
-      'Load Capacity': '2400N/m',
-      'Color': 'Silver Anodized'
-    },
-    unitPrice: 85,
-    currency: 'TND',
-    supplierId: '3',
-    supplierName: 'MountPro Systems',
-    stockLevel: 200,
-    minStock: 100,
-    maxStock: 500,
-    unit: 'piece',
-    warranty: '20 years',
-    certifications: ['ISO 9001', 'TUV']
-  }
-];
-
-const mockPurchaseOrders: PurchaseOrder[] = [
-  {
-    id: '1',
-    orderNumber: 'PO-2024-001',
-    supplierId: '1',
-    supplierName: 'SolarTech Tunisia',
-    projectId: '1',
-    projectName: 'Residential Solar Installation - Ahmed Ben Salem',
-    status: 'delivered',
-    orderDate: '2024-01-10',
-    expectedDelivery: '2024-01-20',
-    actualDelivery: '2024-01-18',
-    totalAmount: 9000,
-    currency: 'TND',
-    items: [
-      {
-        productId: '1',
-        productName: 'Monocrystalline Solar Panel 500W',
-        quantity: 20,
-        unitPrice: 450,
-        totalPrice: 9000
-      }
-    ],
-    notes: 'Urgent delivery required for project timeline',
-    createdBy: 'Sarah Hadj'
-  },
-  {
-    id: '2',
-    orderNumber: 'PO-2024-002',
-    supplierId: '2',
-    supplierName: 'Inverter Solutions SARL',
-    projectId: '2',
-    projectName: 'Industrial Solar Array - Fatima Manufacturing',
-    status: 'confirmed',
-    orderDate: '2024-01-15',
-    expectedDelivery: '2024-01-25',
-    totalAmount: 42000,
-    currency: 'TND',
-    items: [
-      {
-        productId: '2',
-        productName: 'String Inverter 10kW',
-        quantity: 15,
-        unitPrice: 2800,
-        totalPrice: 42000
-      }
-    ],
-    notes: 'Coordinate delivery with installation team',
-    createdBy: 'Mohamed Ali'
-  }
-];
-
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',
   sent: 'bg-blue-100 text-blue-800',
@@ -290,10 +116,85 @@ export default function ProcurementPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(mockPurchaseOrders);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchProcurementData();
+  }, []);
+
+  const fetchProcurementData = async () => {
+    try {
+      const [suppliersRes, productsRes, ordersRes] = await Promise.all([
+        supabase.from('suppliers').select('*'),
+        supabase.from('products').select('*, supplier:suppliers(name)'),
+        supabase.from('purchase_orders').select('*, supplier:suppliers(name), project:projects(name), items:purchase_order_items(*), product:products(name)').order('created_at', { ascending: false }),
+      ]);
+      if (suppliersRes.error) throw suppliersRes.error;
+      if (productsRes.error) throw productsRes.error;
+      if (ordersRes.error) throw ordersRes.error;
+      setSuppliers((suppliersRes.data || []).map((s: any): Supplier => ({
+        id: s.id,
+        name: s.name,
+        email: s.email,
+        phone: s.phone,
+        address: s.address,
+        city: s.city,
+        country: s.country,
+        category: s.category,
+        rating: s.rating,
+        status: s.status as 'active' | 'inactive' | 'pending',
+        paymentTerms: s.payment_terms || '',
+        deliveryTime: s.delivery_time || '',
+        certifications: s.certifications || [],
+      })));
+      setProducts((productsRes.data || []).map((p: any): Product => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        brand: p.brand,
+        model: p.model,
+        specifications: p.specifications || {},
+        unitPrice: p.unit_price,
+        currency: p.currency,
+        supplierId: p.supplier_id,
+        supplierName: p.supplier?.name || '',
+        stockLevel: p.stock_level,
+        minStock: p.min_stock,
+        maxStock: p.max_stock,
+        unit: p.unit,
+        warranty: p.warranty,
+        certifications: p.certifications || [],
+      })));
+      setPurchaseOrders((ordersRes.data || []).map((o: any): PurchaseOrder => ({
+        id: o.id,
+        orderNumber: o.order_number,
+        supplierId: o.supplier_id,
+        supplierName: o.supplier?.name || '',
+        projectId: o.project_id,
+        projectName: o.project?.name || '',
+        status: o.status,
+        orderDate: o.order_date,
+        expectedDelivery: o.expected_delivery,
+        actualDelivery: o.actual_delivery,
+        totalAmount: o.total_amount,
+        currency: o.currency,
+        items: (o.items || []).map((item: any) => ({
+          productId: item.product_id,
+          productName: item.product?.name || '',
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          totalPrice: item.total_price,
+        })),
+        notes: o.notes,
+        createdBy: o.created_by,
+      })));
+    } catch (error) {
+      console.error('Error fetching procurement data:', error);
+    }
+  };
 
   const lowStockProducts = products.filter(product => product.stockLevel <= product.minStock);
   const totalInventoryValue = products.reduce((sum, product) => sum + (product.stockLevel * product.unitPrice), 0);
