@@ -1,22 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-console.log('SUPABASE_URL:', supabaseUrl);
-console.log('SUPABASE_ANON_KEY:', supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const isSupabaseConfigured = supabaseUrl && 
-  supabaseAnonKey && 
-
-  supabaseUrl.startsWith('https://');
-
-if (!isSupabaseConfigured) {
-  console.warn('Supabase NOT configured due to missing or invalid env vars');
-}
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
 // Database types
 export type Database = {
   public: {
