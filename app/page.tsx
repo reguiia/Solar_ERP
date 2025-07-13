@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { fetchDashboardStats } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface Module {
   id: string;
@@ -145,8 +145,37 @@ export default function Dashboard() {
   const loadDashboardStats = useCallback(async () => {
     try {
       setLoading(true);
-      const dashboardStats = await fetchDashboardStats();
-      setStats(dashboardStats);
+      // Fetch all data in parallel
+      const [leadsRes, projectsRes, invoicesRes, customersRes] = await Promise.all([
+        supabase.from('leads').select('*'),
+        supabase.from('projects').select('*'),
+        supabase.from('invoices').select('*'),
+        supabase.from('customers').select('*'),
+      ]);
+      if (leadsRes.error) throw leadsRes.error;
+      if (projectsRes.error) throw projectsRes.error;
+      if (invoicesRes.error) throw invoicesRes.error;
+      if (customersRes.error) throw customersRes.error;
+      const leads = leadsRes.data || [];
+      const projects = projectsRes.data || [];
+      const invoices = invoicesRes.data || [];
+      const customers = customersRes.data || [];
+      // Calculate stats
+      const totalLeads = leads.length;
+      const qualifiedLeads = leads.filter((lead: any) => lead.status === 'qualified').length;
+      const activeProjects = projects.filter((project: any) => project.status !== 'completed').length;
+      const completedProjects = projects.filter((project: any) => project.status === 'completed').length;
+      const totalRevenue = invoices.filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + inv.total_amount, 0);
+      const conversionRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
+      setStats({
+        totalRevenue,
+        activeProjects,
+        conversionRate,
+        totalLeads,
+        qualifiedLeads,
+        completedProjects,
+        totalCustomers: customers.length
+      });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
