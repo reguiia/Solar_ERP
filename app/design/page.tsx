@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ArrowLeft, 
@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { supabase } from '@/lib/supabase';
 
 interface SimulationResult {
   panelsNeeded: number;
@@ -43,6 +44,15 @@ export default function DesignPage() {
   const [energyConsumption, setEnergyConsumption] = useState([300]);
   const [tiltAngle, setTiltAngle] = useState([30]);
   const [simulationResults, setSimulationResults] = useState<SimulationResult | null>(null);
+
+  useEffect(() => {
+    // Example: fetch design templates or system types from Supabase if needed
+    // const fetchDesignTemplates = async () => {
+    //   const { data, error } = await supabase.from('design_templates').select('*');
+    //   // handle data
+    // };
+    // fetchDesignTemplates();
+  }, []);
 
   const runSimulation = () => {
     // Mock simulation calculation
