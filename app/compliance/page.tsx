@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { fetchComplianceRecords, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 // Types based on database schema
@@ -150,6 +150,79 @@ const typeIcons: Record<string, React.ReactNode> = {
   residential: <Home className="h-4 w-4" />,
   industrial: <Building className="h-4 w-4" />,
   agricultural: <Sprout className="h-4 w-4" />
+};
+
+// Add fetchComplianceRecords locally
+const fetchComplianceRecords = async () => {
+  // Return fallback data if Supabase is not configured
+  if (!supabase) {
+    return [
+      {
+        id: '1',
+        regulation_name: 'Building Permit',
+        status: 'approved' as const,
+        progress: 100,
+        submission_date: '2024-01-15',
+        approval_date: '2024-01-20',
+        project_id: 'proj-1',
+        notes: 'All requirements met',
+        assigned_to: 'user-1',
+        created_at: '2024-01-15T10:00:00Z',
+        project: { name: 'Residential Solar Installation' },
+        assigned_user: { full_name: 'John Smith' }
+      },
+      {
+        id: '2',
+        regulation_name: 'Electrical Permit',
+        status: 'in_review' as const,
+        progress: 75,
+        submission_date: '2024-01-18',
+        approval_date: null,
+        project_id: 'proj-2',
+        notes: 'Waiting for final inspection',
+        assigned_to: 'user-2',
+        created_at: '2024-01-18T14:30:00Z',
+        project: { name: 'Commercial Solar Array' },
+        assigned_user: { full_name: 'Sarah Johnson' }
+      },
+      {
+        id: '3',
+        regulation_name: 'Environmental Impact Assessment',
+        status: 'pending' as const,
+        progress: 25,
+        submission_date: '2024-01-22',
+        approval_date: null,
+        project_id: 'proj-3',
+        notes: 'Initial documentation submitted',
+        assigned_to: 'user-3',
+        created_at: '2024-01-22T09:15:00Z',
+        project: { name: 'Agricultural Solar Farm' },
+        assigned_user: { full_name: 'Mike Davis' }
+      }
+    ];
+  }
+
+  const { data, error } = await supabase
+    .from('compliance_records')
+    .select(`
+      id, 
+      regulation_name, 
+      status, 
+      progress, 
+      submission_date, 
+      approval_date, 
+      project_id, 
+      notes, 
+      assigned_to, 
+      created_at,
+      project:projects(name),
+      assigned_user:users!compliance_records_assigned_to_fkey(full_name)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  return data || [];
 };
 
 function CompliancePage() {
