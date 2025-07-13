@@ -1,18 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+onst supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Check if Supabase is properly configured with valid URLs
+console.log('SUPABASE_URL:', supabaseUrl);
+console.log('SUPABASE_ANON_KEY:', supabaseAnonKey);
+
 const isSupabaseConfigured = supabaseUrl && 
   supabaseAnonKey && 
 
   supabaseUrl.startsWith('https://');
 
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
-
+if (!isSupabaseConfigured) {
+  console.warn('Supabase NOT configured due to missing or invalid env vars');
+}
 // Database types
 export type Database = {
   public: {
