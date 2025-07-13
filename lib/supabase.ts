@@ -14,6 +14,9 @@ const isSupabaseConfigured = supabaseUrl &&
 if (!isSupabaseConfigured) {
   console.warn('Supabase NOT configured due to missing or invalid env vars');
 }
+export const supabase = isSupabaseConfigured 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 // Database types
 export type Database = {
   public: {
