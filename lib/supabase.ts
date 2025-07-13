@@ -6,8 +6,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 // Check if Supabase is properly configured with valid URLs
 const isSupabaseConfigured = supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl !== 'your_supabase_project_url' && 
-  supabaseAnonKey !== 'your_supabase_public_anon_key' &&
+
   supabaseUrl.startsWith('https://');
 
 export const supabase = isSupabaseConfigured 
