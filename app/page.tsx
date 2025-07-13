@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { supabase, fetchDashboardStats } from '@/lib/supabase';
+import { fetchDashboardStats } from '@/lib/supabase';
 
 interface Module {
   id: string;
