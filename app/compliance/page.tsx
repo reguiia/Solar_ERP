@@ -166,8 +166,8 @@ function CompliancePage() {
 
   // Move fetchComplianceRecords inside the component
   const fetchComplianceRecords = async () => {
-    // Return fallback data if Supabase is not configured
-    if (!supabase) {
+    // Always return mock data during build/SSR
+    if (typeof window === 'undefined') {
       return [
         {
           id: '1',
@@ -212,6 +212,11 @@ function CompliancePage() {
           assigned_user: { full_name: 'Mike Davis' }
         }
       ];
+    }
+
+    // Otherwise, fetch from Supabase in the browser
+    if (!supabase) {
+      return [];
     }
 
     const { data, error } = await supabase
