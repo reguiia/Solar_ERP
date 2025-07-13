@@ -53,7 +53,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { fetchProjects } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface Project {
   id: string;
@@ -186,157 +186,6 @@ interface SiteSurvey {
   recommendations: string[];
 }
 
-const mockProjects: Project[] = [
-  {
-    id: '1',
-    name: 'Residential Solar Installation - Villa Sidi Bou Said',
-    customer: {
-      id: 'c1',
-      name: 'Ahmed Ben Salem',
-      email: 'ahmed.salem@email.com',
-      phone: '+216 20 123 456',
-      address: 'Villa 15, Sidi Bou Said, Tunis'
-    },
-    type: 'residential',
-    status: 'installation',
-    priority: 'high',
-    progress: 75,
-    startDate: '2024-01-10',
-    endDate: '2024-02-15',
-    estimatedEndDate: '2024-02-12',
-    budget: 15000,
-    spent: 11250,
-    location: {
-      address: 'Villa 15, Sidi Bou Said',
-      city: 'Tunis',
-      coordinates: { lat: 36.8685, lng: 10.3470 }
-    },
-    projectManager: {
-      id: 'pm1',
-      name: 'Sarah Hadj',
-      email: 'sarah.hadj@company.tn',
-      phone: '+216 20 234 567'
-    },
-    team: [
-      { id: 't1', name: 'Mohamed Ali', role: 'Lead Technician' },
-      { id: 't2', name: 'Fatima Zahra', role: 'Electrician' },
-      { id: 't3', name: 'Karim Bouzid', role: 'Assistant' }
-    ],
-    systemSpecs: {
-      capacity: '8 kW',
-      panelCount: 16,
-      inverterType: 'String Inverter 8kW',
-      mountingType: 'Roof Mount',
-      estimatedProduction: 12000
-    },
-    tasks: [],
-    milestones: [],
-    documents: [],
-    notes: [],
-    risks: [],
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-20'
-  },
-  {
-    id: '2',
-    name: 'Industrial Solar Array - Fatima Manufacturing',
-    customer: {
-      id: 'c2',
-      name: 'Fatima Manufacturing SARL',
-      email: 'contact@fatima-mfg.tn',
-      phone: '+216 71 234 567',
-      address: 'Zone Industrielle, Sfax'
-    },
-    type: 'industrial',
-    status: 'design',
-    priority: 'medium',
-    progress: 35,
-    startDate: '2024-01-15',
-    endDate: '2024-04-30',
-    estimatedEndDate: '2024-05-15',
-    budget: 120000,
-    spent: 42000,
-    location: {
-      address: 'Zone Industrielle Sfax',
-      city: 'Sfax',
-      coordinates: { lat: 34.7406, lng: 10.7603 }
-    },
-    projectManager: {
-      id: 'pm2',
-      name: 'Mohamed Ali',
-      email: 'mohamed.ali@company.tn',
-      phone: '+216 20 345 678'
-    },
-    team: [
-      { id: 't4', name: 'Amina Tounsi', role: 'Design Engineer' },
-      { id: 't5', name: 'Youssef Mansouri', role: 'Project Coordinator' }
-    ],
-    systemSpecs: {
-      capacity: '150 kW',
-      panelCount: 300,
-      inverterType: 'Central Inverter 150kW',
-      mountingType: 'Ground Mount',
-      estimatedProduction: 225000
-    },
-    tasks: [],
-    milestones: [],
-    documents: [],
-    notes: [],
-    risks: [],
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-20'
-  },
-  {
-    id: '3',
-    name: 'Agricultural Off-Grid System - Olive Farm Kairouan',
-    customer: {
-      id: 'c3',
-      name: 'Mohamed Agri Farm',
-      email: 'mohamed.agri@email.com',
-      phone: '+216 25 345 678',
-      address: 'Route de Sousse, Kairouan'
-    },
-    type: 'agricultural',
-    status: 'approval',
-    priority: 'low',
-    progress: 20,
-    startDate: '2024-01-20',
-    endDate: '2024-03-20',
-    estimatedEndDate: '2024-03-25',
-    budget: 25000,
-    spent: 5000,
-    location: {
-      address: 'Route de Sousse, Km 15',
-      city: 'Kairouan',
-      coordinates: { lat: 35.6781, lng: 10.0963 }
-    },
-    projectManager: {
-      id: 'pm3',
-      name: 'Amina Tounsi',
-      email: 'amina.tounsi@company.tn',
-      phone: '+216 20 456 789'
-    },
-    team: [
-      { id: 't6', name: 'Slim Bouaziz', role: 'Agricultural Specialist' },
-      { id: 't7', name: 'Nadia Khelifi', role: 'Off-Grid Technician' }
-    ],
-    systemSpecs: {
-      capacity: '20 kW',
-      panelCount: 40,
-      inverterType: 'Hybrid Inverter 20kW',
-      mountingType: 'Ground Mount',
-      estimatedProduction: 30000
-    },
-    tasks: [],
-    milestones: [],
-    documents: [],
-    notes: [],
-    risks: [],
-    createdAt: '2024-01-20',
-    updatedAt: '2024-01-20'
-  }
-];
-
 const statusColors = {
   planning: 'bg-gray-100 text-gray-800',
   design: 'bg-blue-100 text-blue-800',
@@ -374,11 +223,12 @@ export default function ProjectsPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedPriority, setSelectedPriority] = useState('all');
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]); // For potential customer lookup
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const filteredProjects = projects.filter(project => {
+  const filteredProjects = projects.filter((project: Project) => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.location.city.toLowerCase().includes(searchTerm.toLowerCase());
@@ -390,26 +240,78 @@ export default function ProjectsPage() {
 
   const stats = {
     totalProjects: projects.length,
-    activeProjects: projects.filter(p => !['completed', 'on_hold'].includes(p.status)).length,
-    completedThisMonth: projects.filter(p => p.status === 'completed').length,
-    overdue: projects.filter(p => new Date(p.estimatedEndDate) < new Date() && p.status !== 'completed').length,
-    totalValue: projects.reduce((sum, p) => sum + p.budget, 0),
-    avgProgress: Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)
+    activeProjects: projects.filter((p: Project) => !['completed', 'on_hold'].includes(p.status)).length,
+    completedThisMonth: projects.filter((p: Project) => p.status === 'completed').length,
+    overdue: projects.filter((p: Project) => new Date(p.estimatedEndDate) < new Date() && p.status !== 'completed').length,
+    totalValue: projects.reduce((sum: number, p: Project) => sum + p.budget, 0),
+    avgProgress: projects.length > 0 ? Math.round(projects.reduce((sum: number, p: Project) => sum + p.progress, 0) / projects.length) : 0
   };
 
   useEffect(() => {
-    fetchProjects();
+    fetchProjectsAndCustomers();
   }, []);
 
-  const fetchProjects = async () => {
+  const fetchProjectsAndCustomers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // In a real app, fetch from Supabase
-      // const { data, error } = await supabase.from('projects').select('*');
-      // if (error) throw error;
-      // setProjects(data || []);
+      // Fetch projects and customers in parallel
+      const [{ data: projectData, error: projectError }, { data: customerData, error: customerError }] = await Promise.all([
+        supabase.from('projects').select(`*, customer:customers(*), manager:users!projects_project_manager_fkey(full_name)`),
+        supabase.from('customers').select('*'),
+      ]);
+      if (projectError) throw projectError;
+      if (customerError) throw customerError;
+      setCustomers(customerData || []);
+      // Transform project data to match Project interface
+      const transformed = (projectData || []).map((p: any): Project => ({
+        id: p.id,
+        name: p.name,
+        customer: {
+          id: p.customer?.id || '',
+          name: p.customer?.name || '',
+          email: p.customer?.email || '',
+          phone: p.customer?.phone || '',
+          address: p.customer?.address || '',
+        },
+        type: p.project_type,
+        status: p.status,
+        priority: p.priority,
+        progress: p.progress,
+        startDate: p.start_date,
+        endDate: p.end_date,
+        estimatedEndDate: p.estimated_end_date || '',
+        budget: p.budget,
+        spent: p.spent,
+        location: {
+          address: p.location || '',
+          city: '', // You may want to parse city from location if needed
+          coordinates: undefined,
+        },
+        projectManager: {
+          id: p.project_manager || '',
+          name: p.manager?.full_name || '',
+          email: '',
+          phone: '',
+        },
+        team: [], // You may want to fetch team members separately if needed
+        systemSpecs: {
+          capacity: p.system_size || '',
+          panelCount: p.panel_count,
+          inverterType: p.inverter_type || '',
+          mountingType: p.mounting_type || '',
+          estimatedProduction: p.estimated_production,
+        },
+        tasks: [], // You may want to fetch tasks separately if needed
+        milestones: [],
+        documents: [],
+        notes: [],
+        risks: [],
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+      }));
+      setProjects(transformed);
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error('Error fetching projects or customers:', error);
     } finally {
       setLoading(false);
     }
