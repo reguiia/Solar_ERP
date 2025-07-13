@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/lib/supabase';
 
 
 interface Report {
@@ -212,8 +213,47 @@ export default function ReportingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [reports, setReports] = useState<Report[]>(mockReports);
-  const [kpis, setKPIs] = useState<KPI[]>(mockKPIs);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [kpis, setKPIs] = useState<KPI[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchReportingData();
+  }, []);
+
+  const fetchReportingData = async () => {
+    try {
+      const [projectsRes, invoicesRes, customersRes] = await Promise.all([
+        supabase.from('projects').select('*'),
+        supabase.from('invoices').select('*'),
+        supabase.from('customers').select('*'),
+      ]);
+      if (projectsRes.error) throw projectsRes.error;
+      if (invoicesRes.error) throw invoicesRes.error;
+      if (customersRes.error) throw customersRes.error;
+      setProjects(projectsRes.data || []);
+      setInvoices(invoicesRes.data || []);
+      setCustomers(customersRes.data || []);
+      // Calculate KPIs
+      const totalRevenue = (invoicesRes.data || []).filter((inv: any) => inv.status === 'paid').reduce((sum: number, inv: any) => sum + inv.total_amount, 0);
+      const totalLeads = 0; // If you want to fetch leads, add here
+      const qualifiedLeads = 0;
+      const activeProjects = (projectsRes.data || []).filter((p: any) => p.status !== 'completed').length;
+      const completedProjects = (projectsRes.data || []).filter((p: any) => p.status === 'completed').length;
+      const conversionRate = totalLeads > 0 ? Math.round((qualifiedLeads / totalLeads) * 100) : 0;
+      const avgProjectValue = (projectsRes.data || []).length > 0 ? Math.round((projectsRes.data || []).reduce((sum: number, p: any) => sum + p.budget, 0) / (projectsRes.data || []).length) : 0;
+      setKPIs([
+        { id: '1', name: 'Total Revenue', value: totalRevenue, unit: 'TND', target: 0, trend: 'up', change: 0, period: '', category: 'financial' },
+        { id: '2', name: 'Active Projects', value: activeProjects, unit: '', target: 0, trend: 'up', change: 0, period: '', category: 'operational' },
+        { id: '3', name: 'Completed Projects', value: completedProjects, unit: '', target: 0, trend: 'up', change: 0, period: '', category: 'operational' },
+        { id: '4', name: 'Average Project Value', value: avgProjectValue, unit: 'TND', target: 0, trend: 'stable', change: 0, period: '', category: 'financial' },
+      ]);
+    } catch (error) {
+      console.error('Error fetching reporting data:', error);
+    }
+  };
 
   const filteredReports = reports.filter(report => {
     const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
