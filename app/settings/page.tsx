@@ -33,6 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/lib/supabase';
 
 
 interface User {
@@ -68,53 +69,6 @@ interface SystemSetting {
   options?: string[];
   required: boolean;
 }
-
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'admin@solarproerp.tn',
-    fullName: 'Ahmed Administrator',
-    role: 'admin',
-    phone: '+216 20 123 456',
-    status: 'active',
-    lastLogin: '2024-01-20 14:30',
-    createdAt: '2024-01-01',
-    permissions: ['all']
-  },
-  {
-    id: '2',
-    email: 'sarah.hadj@solarproerp.tn',
-    fullName: 'Sarah Hadj',
-    role: 'manager',
-    phone: '+216 20 234 567',
-    status: 'active',
-    lastLogin: '2024-01-20 09:15',
-    createdAt: '2024-01-05',
-    permissions: ['projects.manage', 'crm.manage', 'reports.view']
-  },
-  {
-    id: '3',
-    email: 'mohamed.ali@solarproerp.tn',
-    fullName: 'Mohamed Ali',
-    role: 'technician',
-    phone: '+216 20 345 678',
-    status: 'active',
-    lastLogin: '2024-01-19 16:45',
-    createdAt: '2024-01-10',
-    permissions: ['projects.view', 'design.manage', 'compliance.view']
-  },
-  {
-    id: '4',
-    email: 'amina.tounsi@solarproerp.tn',
-    fullName: 'Amina Tounsi',
-    role: 'sales_rep',
-    phone: '+216 20 456 789',
-    status: 'active',
-    lastLogin: '2024-01-20 11:20',
-    createdAt: '2024-01-15',
-    permissions: ['crm.manage', 'finance.view', 'reports.view']
-  }
-];
 
 const mockRoles: Role[] = [
   {
@@ -242,11 +196,38 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>(mockRoles);
   const [settings, setSettings] = useState<SystemSetting[]>(mockSettings);
   const [loading, setLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase.from('customers').select('*');
+      if (error) throw error;
+      // Transform data to User interface
+      const transformed = (data || []).map((u: any): User => ({
+        id: u.id,
+        email: u.email,
+        fullName: u.name,
+        role: 'manager', // You may want to map this from another field if available
+        phone: u.phone,
+        avatarUrl: '',
+        status: 'active', // You may want to map this from another field if available
+        lastLogin: '',
+        createdAt: u.created_at,
+        permissions: [],
+      }));
+      setUsers(transformed);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
