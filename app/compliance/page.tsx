@@ -157,13 +157,13 @@ const ComplianceRecordSchema = z.object({
     .optional(),
 });
 
-function CompliancePage({ initialComplianceRecords }: { initialComplianceRecords: ComplianceRecord[] }) {
+function CompliancePage() {
   const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>(initialComplianceRecords);
+  const [complianceRecords, setComplianceRecords] = useState<ComplianceRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
   const typeIcons: Record<string, React.ReactNode> = {
